@@ -1,3 +1,4 @@
+import re
 from tkinter import *
 from pyopengltk import OpenGLFrame
 from OpenGL import GL, GLU
@@ -5,6 +6,8 @@ from tkinter.ttk import Combobox
 from tkinter.ttk import Radiobutton
 from tkinter.ttk import Scale
 from random import uniform
+import math
+from tkinter.ttk import Entry
 
 
 def scissor_click():  # вспомогательная функция для задания начальной точки
@@ -188,7 +191,194 @@ def draw():  # отрисовка
         GL.glVertex3f(coordinates[i][0], coordinates[i][1], 0.0)
     GL.glEnd()
 
+    global is_on_main_fractal
+    global is_on_details
+    global step
+    global is_on_add_part_1
+    R = entry_R_fractal.get()
+    if R == "" or R == 0:
+        R = 250
+    if is_on_main_fractal:
+        draw_fractal_main_part(float(R), True, step, is_on_details, is_on_add_part_1)
+
     GL.glFlush()
+
+
+def draw_fractal_main_part(R, double, count, turn_show=False, add_part_1=False):  # отрисовка фрактала
+    GL.glLineWidth(1)
+    GL.glColor3d(0, 0, 255)
+    angles_points = []
+    low_angles_points = []
+
+    GL.glBegin(GL.GL_LINE_STRIP)
+
+    for i in range(100):
+        if turn_show:
+            GL.glVertex2f(R * math.cos(2 * math.pi / 50 * i) + 350, R * math.sin(2 * math.pi / 50 * i) + 250)
+        if i % 5 == 0:
+            angles_points.append((R * math.cos(2 * math.pi / 50 * i) + 350, R * math.sin(2 * math.pi / 50 * i) + 250))
+
+    for i in range(10):
+        temp_y = (angles_points[i][1] + angles_points[i + 1][1]) / 2
+        low_angles_points.append((((angles_points[i][0] + angles_points[i + 1][0]) / 2), temp_y))
+    GL.glEnd()
+
+    GL.glBegin(GL.GL_LINE_STRIP)
+    for i in range(len(angles_points)):
+        if turn_show:
+            GL.glVertex3d(angles_points[i][0], angles_points[i][1], 0)
+    GL.glEnd()
+
+    GL.glBegin(GL.GL_LINE_STRIP)
+    low_angles_points[0] = (low_angles_points[0][0] - 7, low_angles_points[0][1] - 5)
+    low_angles_points[1] = (low_angles_points[1][0] - 6, low_angles_points[1][1] - 5)
+    low_angles_points[2] = (low_angles_points[2][0], low_angles_points[2][1] - 7)
+    low_angles_points[3] = (low_angles_points[3][0] + 7, low_angles_points[3][1] - 6)
+    low_angles_points[4] = (low_angles_points[4][0] + 8, low_angles_points[4][1] - 4)
+    low_angles_points[5] = (low_angles_points[5][0] + 8, low_angles_points[5][1] + 1)
+    low_angles_points[6] = (low_angles_points[6][0] + 5, low_angles_points[6][1] + 6)
+    low_angles_points[7] = (low_angles_points[7][0], low_angles_points[7][1] + 10)
+    low_angles_points[8] = (low_angles_points[8][0] - 7, low_angles_points[8][1] + 6)
+    low_angles_points[9] = (low_angles_points[9][0] - 8, low_angles_points[9][1] + 2)
+
+    for i in range(len(low_angles_points)):
+        if turn_show:
+            GL.glVertex3d(low_angles_points[i][0], low_angles_points[i][1], 0)
+    GL.glEnd()
+
+    if count > 0 or (not double and count == -1):
+        GL.glBegin(GL.GL_POINTS)
+        GL.glColor3d(255, 0, 0)
+        for i in range(10):
+            control_points = [angles_points[i], low_angles_points[i], angles_points[i + 1]]
+            t = 0
+
+            while t <= 1:
+                x = (1 - t) ** 2 * control_points[0][0] + 2 * (1 - t) * t * control_points[1][0] + t ** 2 * \
+                    control_points[2][0]
+                y = (1 - t) ** 2 * control_points[0][1] + 2 * (1 - t) * t * control_points[1][1] + t ** 2 * \
+                    control_points[2][1]
+                t += 0.01
+                GL.glVertex3d(x, y, 0)
+        GL.glEnd()
+
+    if double and count > 0:
+        angles_points.clear()
+        low_angles_points.clear()
+        draw_fractal_main_part(R - 5, False, -1, turn_show, add_part_1)
+
+    if count > 0 and R > 0:
+        angles_points.clear()
+        low_angles_points.clear()
+        draw_fractal_main_part(R - 20, True, count - 1, turn_show, add_part_1)
+
+    elif count == 0 and add_part_1:
+        low_angles_points[0] = (384, 259)
+        low_angles_points[1] = (370, 278)
+        low_angles_points[2] = (351, 285)
+        low_angles_points[3] = (331, 279)
+        low_angles_points[4] = (316, 259)
+        low_angles_points[5] = (317, 237)
+        low_angles_points[6] = (330, 221)
+        low_angles_points[7] = (350, 216)
+        low_angles_points[8] = (373, 223)
+        low_angles_points[9] = (383, 240)
+
+        GL.glBegin(GL.GL_LINE_LOOP)
+        for i in range(len(low_angles_points)):
+            GL.glColor3d(255, 0, 0)
+            GL.glVertex3d(angles_points[i][0], angles_points[i][1], 0)
+            GL.glColor3d(0, 255, 0)
+            GL.glVertex3d(low_angles_points[i][0], low_angles_points[i][1], 0)
+        GL.glEnd()
+
+        low_angles_points[0] = (373, 257)
+        low_angles_points[1] = (365, 270)
+        low_angles_points[2] = (351, 274)
+        low_angles_points[3] = (339, 271)
+        low_angles_points[4] = (326, 257)
+        low_angles_points[5] = (325, 241)
+        low_angles_points[6] = (336, 228)
+        low_angles_points[7] = (351, 226)
+        low_angles_points[8] = (368, 233)
+        low_angles_points[9] = (374, 244)
+
+        angles_points.clear()
+
+        for i in range(100):
+            if turn_show:
+                GL.glVertex2f(45 * math.cos(2 * math.pi / 50 * i) + 350, 45 * math.sin(2 * math.pi / 50 * i) + 250)
+            if i % 5 == 0:
+                angles_points.append(
+                    (45 * math.cos(2 * math.pi / 50 * i) + 350, 45 * math.sin(2 * math.pi / 50 * i) + 250))
+
+        GL.glBegin(GL.GL_LINE_LOOP)
+        for i in range(len(low_angles_points)):
+            GL.glColor3d(255, 0, 0)
+            GL.glVertex3d(angles_points[i][0], angles_points[i][1], 0)
+            GL.glColor3d(0, 255, 0)
+            GL.glVertex3d(low_angles_points[i][0], low_angles_points[i][1], 0)
+        GL.glEnd()
+
+        GL.glBegin(GL.GL_LINE_LOOP)
+
+        if turn_show:
+            for i in range(100):
+                GL.glVertex2f(25 * math.cos(2 * math.pi / 50 * i) + 350, 25 * math.sin(2 * math.pi / 50 * i) + 250)
+
+            for i in range(100):
+                GL.glVertex2f(35 * math.cos(2 * math.pi / 50 * i) + 350, 35 * math.sin(2 * math.pi / 50 * i) + 250)
+        GL.glEnd()
+
+
+def switch_button_main_fractal():
+    global is_on_main_fractal
+
+    if is_on_main_fractal:
+        button_main_fractal.config(text="Показать фрактал")
+        is_on_main_fractal = False
+    else:
+        button_main_fractal.config(text="Скрыть фрактал")
+        is_on_main_fractal = True
+
+
+def switch_button_details_fractal():
+    global is_on_details
+
+    if is_on_details:
+        button_details_fractal.config(text="Показать детали построения")
+        is_on_details = False
+    else:
+        button_details_fractal.config(text="Скрыть детали построения")
+        is_on_details = True
+
+
+def is_valid_R(newval):
+    return re.match("^\d{0,3}$", newval) is not None
+
+
+def plus_step():
+    global step
+    if step < 30:
+        step += 1
+    label_step.config(text="№Шага =" + str(step))
+
+
+def minus_step():
+    global step
+    if step > 1:
+        step -= 1
+    label_step.config(text="№Шага =" + str(step))
+
+
+def switch_button_fractal_mid():
+    global is_on_add_part_1
+    if is_on_add_part_1:
+        button_add_part_1.config(text="Показать центр фрактала")
+        is_on_add_part_1 = False
+    else:
+        button_add_part_1.config(text="Скрыть центр фрактала")
+        is_on_add_part_1 = True
 
 
 class DrawingWindow(OpenGLFrame):  # создание класса на основе пакета pyopengltk
@@ -199,13 +389,14 @@ class DrawingWindow(OpenGLFrame):  # создание класса на осно
         # цветопередачи
         GL.glMatrixMode(GL.GL_PROJECTION)  # матрица проекции (для проецирования 3D прсостранства в 2D)
         GL.glLoadIdentity()  # единичная матрица ~ очистика
-        GLU.gluOrtho2D(0, window_width, window_height, 0)  # смещецение оси координат (чтобы не возникало искажения при
-        # отрисовке
+        GLU.gluOrtho2D(0, window_width, window_height, 0)
 
     def redraw(self):  # перерисовка
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         draw()  # функция для отрисовки
 
+
+points = [(100, 100), (150, 150), (50, 50)]
 
 root = Tk()  # главное окно
 
@@ -315,5 +506,32 @@ combo_blend_dfactor['values'] = ("GL_ZERO", "GL_ONE", "GL_SRC_COLOR", "GL_ONE_MI
 combo_blend_dfactor['state'] = 'readonly'
 combo_blend_dfactor.current(5)
 combo_blend_dfactor.place(x=655, y=570)
+
+is_on_main_fractal = False
+button_main_fractal = Button(app, text="Показать фрактал", command=switch_button_main_fractal)
+button_main_fractal.place(x=0, y=0)
+
+is_on_details = False
+button_details_fractal = Button(app, text="Показать детали построения", command=switch_button_details_fractal)
+button_details_fractal.place(x=0, y=25)
+
+is_on_add_part_1 = False
+button_add_part_1 = Button(app, text="Показать центр фрактала", command=switch_button_fractal_mid)
+button_add_part_1.place(x=0, y=50)
+
+check_valid_R = (app.register(is_valid_R), "%P")
+label_Entry = Label(text="Радиус фрактала")
+label_Entry.place(x=0, y=77)
+entry_R_fractal = Entry(width=10, validate="key", validatecommand=check_valid_R)
+entry_R_fractal.place(x=0, y=102)
+entry_R_fractal.insert(0, "250")
+
+step = 1
+label_step = Label(text="№Шага = 1")
+label_step.place(x=0, y=125)
+button_plus_step = Button(app, text="+", command=plus_step, width=2)
+button_plus_step.place(x=0, y=150)
+button_minus_step = Button(app, text="-", command=minus_step, width=2)
+button_minus_step.place(x=25, y=150)
 
 app.mainloop()  # запуск главного цикла
