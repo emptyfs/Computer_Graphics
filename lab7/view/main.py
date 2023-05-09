@@ -397,12 +397,12 @@ class DrawingWindow(OpenGLFrame):  # создание класса на осно
             specular[1] = float(scale_GL_SPECULAR_g.get())
             specular[2] = float(scale_GL_SPECULAR_b.get())
             #specular[3] = float(scale_GL_SPECULAR_a.get())
-        if check_ambient == 1:
+        elif check_ambient == 1:
             model_ambient[0] = float(scale_GL_AMBIENT_r.get())
             model_ambient[1] = float(scale_GL_AMBIENT_g.get())
             model_ambient[2] = float(scale_GL_AMBIENT_b.get())
             #model_ambient[3] = float(scale_GL_AMBIENT_a.get())
-        else:
+        elif check_ambient == 2:
             material_ambient[0] = float(scale_GL_AMBIENT_r.get())
             material_ambient[1] = float(scale_GL_AMBIENT_g.get())
             material_ambient[2] = float(scale_GL_AMBIENT_b.get())
